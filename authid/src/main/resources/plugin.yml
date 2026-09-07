@@ -6,3 +6,5 @@ description: Normalizes player identity across Java premium, Java offline and Ge
 authors:
   - AuthId Contributors
 license: MIT
+softdepend:
+  - AuthMe
