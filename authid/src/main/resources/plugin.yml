@@ -1,0 +1,8 @@
+name: AuthId
+version: '${version}'
+main: com.authid.AuthIdPlugin
+api-version: '1.21'
+description: Normalizes player identity across Java premium, Java offline and Geyser Bedrock via a unified UUID resolution pipeline.
+authors:
+  - AuthId Contributors
+license: MIT

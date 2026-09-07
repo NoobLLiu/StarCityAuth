@@ -4,11 +4,11 @@
 
 AuthId 是一个 Minecraft Java 版 Paper 1.21 服务器插件，用于解决混合玩家群体的身份统一问题。服务器同时存在三种玩家渠道：
 
-| 渠道 | 来源 | UUID 特征 |
-|------|------|-----------|
-| **Java Premium** | 正版玩家 | Mojang 官方分配，唯一且固定 |
-| **Java Offline** | 离线/盗版玩家 | 由启动器或服务器根据用户名生成，不稳定 |
-| **Bedrock (Geyser)** | 基岩版互通玩家 | 经 Geyser 转换，可能存在全零 UUID 或重复问题 |
+| 渠道 | 来源 | UUID 特征                           |
+|------|------|-------------------------------------|
+| **Java Premium** | 正版玩家 | Mojang 官方分配，唯一且固定                           |
+| **Java Offline** | 离线/盗版玩家 | 由启动器或服务器根据用户名生成，不稳定                           |
+| **Bedrock (Geyser)** | 基岩版互通玩家 | 经 Geyser 转换，uuid唯一，只要是同一个基岩版账号进来，转换的uuid就会相同。 |
 
 ### 核心目标
 
@@ -155,9 +155,15 @@ PlayerJoinEvent (加入游戏，Player#getUniqueId() 返回 canonical UUID)
 3. **数据迁移**：首次替换 UUID 时，将旧 UUID 的玩家数据文件重命名
 4. **代理兼容**：配合 Velocity 使用时，需确保代理层传递原始 UUID 信息
 
+## 已完成
+
+- [x] Paper 插件结构转换（Fabric → Paper）
+- [x] 核心业务逻辑保留（ChannelUUIDGenerator、IdentityResolver 等）
+- [x] PlayerHandshakeEvent 监听器实现
+- [x] 玩家数据迁移逻辑
+
 ## 待解决问题
 
-1. **Paper 插件结构转换**：当前代码基于 Fabric 模组结构，需要转换为 Paper 插件结构
-2. **Geyser API 集成**：需要确认 Geyser 提供的 API 来准确识别基岩版玩家
-3. **数据迁移**：如果服务器已有玩家数据，需要考虑迁移策略
-4. **代理层配置**：确认服务器是否使用 Velocity/BungeeCord，决定在线模式配置
+1. **Geyser API 集成**：需要确认 Geyser 提供的 API 来准确识别基岩版玩家
+2. **数据迁移**：如果服务器已有玩家数据，需要考虑迁移策略
+3. **代理层配置**：确认服务器是否使用 Velocity/BungeeCord，决定在线模式配置
