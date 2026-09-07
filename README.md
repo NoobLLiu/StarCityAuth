@@ -1,2 +1,2 @@
-# StarCItyAuth
-StarCItyAuth
+# StarCityAuth
+StarCityAuth
