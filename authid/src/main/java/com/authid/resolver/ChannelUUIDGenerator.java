@@ -57,7 +57,7 @@ public final class ChannelUUIDGenerator {
                 msb = (msb << 8) | (digest[i] & 0xff);
                 lsb = (lsb << 8) | (digest[8 + i] & 0xff);
             }
-            msb = (msb & 0xFFFFFFFFFFFF0FFFBL) | 0x0000000000004000L;
+            msb = (msb & 0xFFFFFFFFFFFF0FFFL) | 0x0000000000004000L;
             lsb = (lsb & 0x3FFFFFFFFFFFFFFFL) | 0x8000000000000000L;
             return new UUID(msb, lsb);
         } catch (NoSuchAlgorithmException e) {

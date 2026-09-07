@@ -29,7 +29,13 @@ public final class HandshakeListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onHandshake(PlayerHandshakeEvent event) {
-        String rawName = event.getUsername();
+        // Paper 的 PlayerHandshakeEvent 不提供用户名（用户名在随后的 Login Start 包中才发送）。
+        // 无法拿到用户名时无法按名字查找身份，只能跳过重映射，避免用错误的名字生成 UUID。
+        String rawName = extractUsernameFromHandshake(event.getOriginalHandshake());
+        if (rawName == null || rawName.isBlank()) {
+            plugin.getLogger().info("[AuthId] Handshake: username not available in handshake event; skipping identity remap");
+            return;
+        }
         UUID originalUuid = event.getUniqueId();
         String serverHostname = event.getServerHostname();
 
@@ -90,5 +96,16 @@ public final class HandshakeListener implements Listener {
         if (hostname == null) return null;
         // Geyser may append extra info to the hostname
         return hostname;
+    }
+
+    /**
+     * 从原始握手字符串中提取用户名（若存在）。
+     * 标准 Java 客户端的握手地址为 "host:port" 或 "host:port\u0000ip:port"，
+     * 不包含用户名；仅当首段看起来像纯用户名（3-16 位字母数字下划线）时才返回。
+     */
+    private String extractUsernameFromHandshake(String originalHandshake) {
+        if (originalHandshake == null || originalHandshake.isBlank()) return null;
+        String first = originalHandshake.split("\u0000", 2)[0].trim();
+        return first.matches("[A-Za-z0-9_]{3,16}") ? first : null;
     }
 }

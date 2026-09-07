@@ -11,6 +11,7 @@ base {
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
     maven { url = 'https://repo.papermc.io/repository/maven-public/' }
     maven { url = 'https://repo.codemc.io/repository/maven-public/' }
@@ -18,7 +19,7 @@ repositories {
 
 dependencies {
     compileOnly 'io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT'
-    compileOnly 'fr.xephi.authme:AuthMe:5.6.0'
+    compileOnly 'fr.xephi:authme:5.7.0-FORK'
     implementation 'com.google.code.gson:gson:2.11.0'
 }
 

@@ -37,7 +37,7 @@ public class IdentityResolver {
         }
 
         UUID mojangUuid = null;
-        if (config.autoLinkByMojangName && config.enableMojangLookup && MojangProfileResolver.isEnabledForConfig(config)) {
+        if (config.autoLinkByMojangName && mojang.isEnabled()) {
             mojangUuid = mojang.lookup(rawName);
             if (mojangUuid == null) {
                 mojang.fetchAsync(rawName, uuid -> {
