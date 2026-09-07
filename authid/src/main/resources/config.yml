@@ -1,0 +1,10 @@
+# AuthId Configuration
+
+# Mojang API lookup settings
+mojang-lookup:
+  # Enable Mojang API lookup to link offline players to premium accounts
+  enabled: true
+  # Cache TTL in milliseconds (default: 100 minutes)
+  cache-ttl-ms: 6000000
+  # Auto-link offline players to premium accounts by name
+  auto-link-by-name: true
