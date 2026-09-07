@@ -4,6 +4,7 @@ import com.authid.AuthIdConfig;
 import com.authid.AuthIdPlugin;
 import com.authid.PlayerChannel;
 import com.authid.ResolvedIdentity;
+import com.authid.identity.IdentityManager;
 import com.authid.resolver.IdentityResolver;
 import com.destroystokyo.paper.event.player.PlayerHandshakeEvent;
 import org.bukkit.event.EventHandler;
@@ -17,11 +18,13 @@ public final class HandshakeListener implements Listener {
     private final AuthIdPlugin plugin;
     private final IdentityResolver resolver;
     private final AuthIdConfig config;
+    private final IdentityManager identityManager;
 
-    public HandshakeListener(AuthIdPlugin plugin, IdentityResolver resolver, AuthIdConfig config) {
+    public HandshakeListener(AuthIdPlugin plugin, IdentityResolver resolver, AuthIdConfig config, IdentityManager identityManager) {
         this.plugin = plugin;
         this.resolver = resolver;
         this.config = config;
+        this.identityManager = identityManager;
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -30,15 +33,28 @@ public final class HandshakeListener implements Listener {
         UUID originalUuid = event.getUniqueId();
         String serverHostname = event.getServerHostname();
 
-        PlayerChannel channel = detectChannel(originalUuid, serverHostname);
+        plugin.getLogger().info("[AuthId] Handshake: " + rawName + " originalUuid=" + originalUuid);
 
+        // Check if player has a selected identity UUID
+        UUID identityUuid = identityManager.getSelectedIdentityUuid(rawName);
+        if (identityUuid != null) {
+            plugin.getLogger().info("[AuthId] Found cached identity for " + rawName + ": " + identityUuid);
+            if (!identityUuid.equals(originalUuid)) {
+                event.setUniqueId(identityUuid);
+                plugin.getLogger().info("[AuthId] UUID remapped (identity): " + originalUuid + " -> " + identityUuid);
+            }
+            return;
+        }
+
+        // Fallback to channel-based resolution
+        PlayerChannel channel = detectChannel(originalUuid, serverHostname);
         String geyserExtra = channel == PlayerChannel.BEDROCK_GEYSER ? extractGeyserExtra(serverHostname) : null;
 
         ResolvedIdentity identity = resolver.resolve(rawName, originalUuid, channel, geyserExtra);
 
         if (!identity.getCanonicalUuid().equals(originalUuid)) {
             event.setUniqueId(identity.getCanonicalUuid());
-            plugin.getLogger().info("[AuthId] UUID remapped for " + rawName
+            plugin.getLogger().info("[AuthId] UUID remapped (channel): " + rawName
                     + " (" + channel.getId() + "): " + originalUuid + " -> " + identity.getCanonicalUuid());
         }
     }

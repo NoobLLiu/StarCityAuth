@@ -8,3 +8,12 @@ authors:
 license: MIT
 softdepend:
   - AuthMe
+commands:
+  authid:
+    description: 管理游戏身份
+    usage: /<command> [create|select|list|delete]
+    permission: authid.use
+permissions:
+  authid.use:
+    description: 使用身份系统
+    default: true

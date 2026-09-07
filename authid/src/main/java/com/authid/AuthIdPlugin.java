@@ -1,6 +1,10 @@
 package com.authid;
 
-import com.authid.resolver.ChannelUUIDGenerator;
+import com.authid.command.AuthIdCommand;
+import com.authid.identity.IdentityManager;
+import com.authid.listener.AuthMeLoginListener;
+import com.authid.listener.HandshakeListener;
+import com.authid.listener.PlayerJoinListener;
 import com.authid.resolver.IdentityResolver;
 import com.authid.resolver.MojangProfileResolver;
 import com.authid.store.PlayerIdentityStore;
@@ -14,6 +18,7 @@ public final class AuthIdPlugin extends JavaPlugin {
     private PlayerIdentityStore identityStore;
     private MojangProfileResolver mojangResolver;
     private IdentityResolver identityResolver;
+    private IdentityManager identityManager;
 
     @Override
     public void onEnable() {
@@ -21,22 +26,41 @@ public final class AuthIdPlugin extends JavaPlugin {
         config = loadConfig();
 
         Path dataDir = getDataFolder().toPath();
+
+        // Initialize identity manager (new system)
+        identityManager = new IdentityManager(dataDir.resolve("player-identities.json"));
+        identityManager.load();
+        getLogger().info("[AuthId] IdentityManager loaded: " + identityManager.getPlayer("test").identities.size() + " test entries");
+
+        // Initialize legacy identity store
         identityStore = new PlayerIdentityStore(dataDir.resolve("identities.json"));
         identityStore.load();
 
         mojangResolver = new MojangProfileResolver(config, dataDir.resolve("mojang-cache"));
         identityResolver = new IdentityResolver(identityStore, mojangResolver, config);
 
-        getServer().getPluginManager().registerEvents(
-                new com.authid.listener.HandshakeListener(this, identityResolver, config), this);
-        getServer().getPluginManager().registerEvents(
-                new com.authid.listener.PlayerJoinListener(this, identityStore), this);
+        // Register command
+        AuthIdCommand authIdCommand = new AuthIdCommand(this, identityManager);
+        getCommand("authid").setExecutor(authIdCommand);
+        getServer().getPluginManager().registerEvents(authIdCommand, this);
 
-        getLogger().info("[AuthId] Enabled. Tracking " + identityStore.size() + " identities.");
+        // Register listeners
+        getServer().getPluginManager().registerEvents(
+                new HandshakeListener(this, identityResolver, config, identityManager), this);
+        getServer().getPluginManager().registerEvents(
+                new PlayerJoinListener(this, identityStore), this);
+        getServer().getPluginManager().registerEvents(
+                new AuthMeLoginListener(this, identityManager), this);
+
+        getLogger().info("[AuthId] Enabled. IdentityManager entries: " + identityManager.getPlayer("test").identities.size());
+        getLogger().info("[AuthId] Legacy store: " + identityStore.size() + " identities.");
     }
 
     @Override
     public void onDisable() {
+        if (identityManager != null) {
+            identityManager.save();
+        }
         if (identityStore != null) {
             identityStore.save();
         }
@@ -52,6 +76,10 @@ public final class AuthIdPlugin extends JavaPlugin {
 
     public PlayerIdentityStore getIdentityStore() {
         return identityStore;
+    }
+
+    public IdentityManager getIdentityManager() {
+        return identityManager;
     }
 
     public AuthIdConfig getAuthIdConfig() {
